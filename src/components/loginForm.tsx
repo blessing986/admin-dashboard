@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { setAuth } from "../store/authSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Bounce, ToastContainer, toast } from "react-toastify";
 
 interface LoginData {
   username: string;
@@ -16,10 +17,10 @@ interface LoginData {
 const schema = Yup.object().shape({
   username: Yup.string()
     .email("Invalid email format")
-    .required("Email is required"),
+    .required("Username is required"),
   password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
+    .required("Password is required")
+    .min(6, "Password must be at least 6 characters"),
 });
 
 const LoginForm = () => {
@@ -53,7 +54,25 @@ const LoginForm = () => {
         dispatch(setAuth(result.token.token));
         router.push("/role/user");
       } else {
-        alert("Invalid credentials");
+        toast.error(
+          <div>
+            <strong className="text-sm font-semibold">Network Response</strong>
+            <p className="text-sm">
+              {result.message || "Invalid login details"}
+            </p>
+          </div>,
+          {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+          },
+        );
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -70,17 +89,25 @@ const LoginForm = () => {
             className="flex h-10 w-full rounded-md border px-3 py-2 text-sm font-normal placeholder:text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-offset-1"
             {...register("username")}
           />
-          {errors.username && <span>{errors.username.message}</span>}
+          {errors.username && (
+            <span className="text-xs text-[#EE3248]">
+              {errors.username.message}
+            </span>
+          )}
         </div>
 
         <div>
           <input
             type="password"
-            placeholder="password"
+            placeholder="Password"
             className="flex h-10 w-full rounded-md border px-3 py-2 text-sm font-normal placeholder:text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-offset-1"
             {...register("password")}
           />
-          {errors.password && <span>{errors.password.message}</span>}
+          {errors.password && (
+            <span className="text-xs text-[#EE3248]">
+              {errors.password.message}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center space-x-2">
@@ -104,6 +131,19 @@ const LoginForm = () => {
           Forgot Password?
         </Link>
       </form>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </>
   );
 };
