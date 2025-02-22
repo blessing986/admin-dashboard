@@ -8,7 +8,7 @@ import { loading, setAuth, loadingStops } from "../store/authSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Slide, ToastContainer, toast } from "react-toastify";
-import { LoaderIcon } from "lucide-react";
+import { LoaderIcon, LockKeyhole } from "lucide-react";
 import { RootState } from "@/store";
 
 interface LoginData {
@@ -33,6 +33,7 @@ const LoginForm = () => {
   } = useForm<LoginData>({
     resolver: yupResolver(schema),
   });
+  
   const dispatch = useDispatch();
   const router = useRouter();
   const isLoading = useSelector((state: RootState) => state.auth.isLoading);
@@ -138,9 +139,14 @@ const LoginForm = () => {
           Login
         </button>
 
-        <Link className="mb-10 text-center text-xs" href="#">
-          Forgot Password?
-        </Link>
+        <div className="text-gray-500">
+          <Link
+            className="mb-10 flex items-center justify-center gap-1 text-center text-xs"
+            href="/reset-password">
+            <LockKeyhole className="h-3 w-3" />
+            Forgot Password?
+          </Link>
+        </div>
       </form>
       <ToastContainer
         position="top-right"
