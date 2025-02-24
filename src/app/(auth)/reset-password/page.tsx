@@ -1,3 +1,5 @@
+"use client";
+
 import BackgroundImage from "@/components/bgImg";
 import { LoaderIcon, LockKeyhole } from "lucide-react";
 import Link from "next/link";
@@ -5,10 +7,10 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
-// import { loading, setAuth, loadingStops } from "../store/authSlice";
 import { loading, loadingStops, setAuth } from "@/store/authSlice";
 import { RootState } from "@/store";
 import { Slide, toast, ToastContainer } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 interface ResetPasswordData {
   email: string;
@@ -17,7 +19,7 @@ interface ResetPasswordData {
 const schema = Yup.object().shape({
   email: Yup.string()
     .email("Invalid email format")
-    .required("Username is required"),
+    .required("Email is required"),
 });
 
 const ResetPassword = () => {
@@ -30,7 +32,7 @@ const ResetPassword = () => {
   });
 
   const dispatch = useDispatch();
-
+  const router = useRouter();
   const isLoading = useSelector((state: RootState) => state.auth.isLoading);
 
   const onSubmit = async (data: ResetPasswordData) => {
@@ -51,13 +53,16 @@ const ResetPassword = () => {
       const result = await response.json();
       console.log(result);
 
-      if (response.ok && result.email) {
-        dispatch(setAuth(result.email));
+      if (response.ok && result.admin.email) {
+        dispatch(setAuth(result.admin.email));
+        router.push("/mfa");
       } else {
         toast.error(
           <div>
             <strong className="text-sm font-semibold">Network Response</strong>
-            <p className="text-sm">{"Invalid email address"}</p>
+            <p className="text-sm">
+              {result.message || "Invalid email address"}
+            </p>
           </div>,
           {
             position: "top-right",
@@ -106,7 +111,8 @@ const ResetPassword = () => {
                   <input
                     type="text"
                     placeholder="Email Address"
-                    className="flex h-10 w-full rounded-md border px-3 py-2 text-xs font-normal placeholder:text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-offset-1"
+                    disabled={isLoading}
+                    className="flex h-10 w-full rounded-md border px-3 py-2 text-xs font-normal placeholder:text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-offset-1 disabled:opacity-50"
                     {...register("email")}
                   />
                   {errors.email && (
@@ -119,12 +125,14 @@ const ResetPassword = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="mt-4 w-full rounded-full bg-[#EE3248] py-2 text-xs font-semibold text-white">
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#EE3248] py-2 text-xs font-semibold text-white disabled:opacity-50">
                   {isLoading && <LoaderIcon className="h-4 w-4 animate-spin" />}
                   SEND RESET LINK
                 </button>
 
-                <button className="w-full rounded-full border py-2 text-xs font-semibold text-gray-400">
+                <button
+                  className="w-full rounded-full border py-2 text-xs font-semibold text-gray-400 disabled:opacity-50"
+                  disabled={isLoading}>
                   {" "}
                   <Link href={"/"}> BACK TO LOGIN</Link>
                 </button>
