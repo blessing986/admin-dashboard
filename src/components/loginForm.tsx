@@ -4,11 +4,16 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
-import { loading, setAuth, loadingStops } from "../store/authSlice";
+import {
+  loading,
+  setAuth,
+  loadingStops,
+  togglePasswordVisibility,
+} from "../store/authSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Slide, ToastContainer, toast } from "react-toastify";
-import { LoaderIcon, LockKeyhole } from "lucide-react";
+import { LoaderIcon, LockKeyhole, Eye, EyeClosed } from "lucide-react";
 import { RootState } from "@/store";
 
 interface LoginData {
@@ -33,28 +38,27 @@ const LoginForm = () => {
   } = useForm<LoginData>({
     resolver: yupResolver(schema),
   });
-  
+
   const dispatch = useDispatch();
   const router = useRouter();
   const isLoading = useSelector((state: RootState) => state.auth.isLoading);
+  const isPasswordVisible = useSelector(
+    (state: RootState) => state.auth.isPasswordVisible,
+  );
 
   const onSubmit = async (data: LoginData) => {
     dispatch(loading());
 
     try {
-      const response = await fetch(
-        "https://api.decove.com/api/v1/auth/admin/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
+      const response = await fetch(`${process.env.NEXT_PUBLIC_LOGIN_URL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(data),
+      });
 
       const result = await response.json();
-      console.log(result);
 
       if (response.ok && result.token?.token) {
         dispatch(setAuth(result.token.token));
@@ -105,14 +109,22 @@ const LoginForm = () => {
           )}
         </div>
 
-        <div>
+        <div className="relative">
           <input
-            type="password"
+            type={isPasswordVisible ? "text" : "password"}
             placeholder="Password"
             disabled={isLoading}
             className="flex h-10 w-full rounded-md border px-3 py-2 text-xs font-normal placeholder:text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-offset-1"
             {...register("password")}
           />
+
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            onClick={() => dispatch(togglePasswordVisibility())}>
+            {isPasswordVisible ? <EyeClosed size={16} /> : <Eye size={16} />}
+          </button>
+
           {errors.password && (
             <span className="text-xs text-[#EE3248]">
               {errors.password.message}

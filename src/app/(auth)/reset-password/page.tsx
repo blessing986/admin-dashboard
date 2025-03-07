@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
-import { loading, loadingStops, setAuth } from "@/store/authSlice";
+import { loading, loadingStops } from "@/store/authSlice";
 import { RootState } from "@/store";
 import { Slide, toast, ToastContainer } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -40,7 +40,7 @@ const ResetPassword = () => {
 
     try {
       const response = await fetch(
-        "https://api.decove.com/api/v1/auth/admin/send-reset-link",
+        `${process.env.NEXT_PUBLIC_RESET_PASSWORD_LINK}`,
         {
           method: "POST",
           headers: {
@@ -53,9 +53,30 @@ const ResetPassword = () => {
       const result = await response.json();
       console.log(result);
 
-      if (response.ok && result.admin.email) {
-        dispatch(setAuth(result.admin.email));
-        router.push("/mfa");
+      if (response.ok && result.message) {
+        toast.success(
+          <div>
+            <strong className="text-sm font-semibold">Success</strong>
+            <p className="text-sm">
+              {result.message || "Check your email for your reset token"}
+            </p>
+          </div>,
+          {
+            position: "top-right",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Slide,
+          },
+        );
+        setTimeout(() => {
+          router.push("/update-password");
+          dispatch(loadingStops());
+        }, 1000);
       } else {
         toast.error(
           <div>
